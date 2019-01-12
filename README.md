@@ -12,7 +12,11 @@ FastLED-Based LED Wall as Clock/Alarm Clock/Decoration/Mood Light
 - ...
 - PROFIT
 
+- Now you can connect to the ESP via it's IP, mDNS (ledwall.local) or it's hostname (ledwall.fritz.box) via your home router (sadly my favourite, as Android does not like mDNS)
+- 
+
 ## Explanatory Images
+
 
 ## Needs:
 - ESP8266 board library (perhaps works with ESP32 as well, don't know)
@@ -39,6 +43,7 @@ FastLED-Based LED Wall as Clock/Alarm Clock/Decoration/Mood Light
 - Effects:
   - https://github.com/jasoncoon/SmartMatrix-FastLED-Examples/blob/master/Fire1/Fire1.ino
   - Some more, that I do not remember right now
+- Webinterface: https://randomnerdtutorials.com/esp8266-web-server/
   
 ## ToDo
 - Alarm Clock with Weekday settings
