@@ -110,7 +110,7 @@ void refreshLEDs (void *pArg) {
     case 0: //(Sunrise-) Clock
     default:
       local = CE.toLocal(now(), &tcr);
-      if (sunrise && (hour(local) * 60 + minute(local) < sunriseMinuteOfDay) && (hour(local) * 60 + minute(local) > sunriseMinuteOfDay - sunriseDuration)) { //DOES NOT WORK AROUND 0:00 -> I DON'T CARE
+      if (sunrise && (hour(local) * 60 + minute(local) < sunriseMinuteOfDay) && (hour(local) * 60 + minute(local) >= sunriseMinuteOfDay - sunriseDuration)) { //DOES NOT WORK AROUND 0:00 -> I DON'T CARE
         digitalWrite(BOARDLED, LOW);
         Serial.println("Sunrise");
         FastLED.setBrightness(sunriseBrightness);
