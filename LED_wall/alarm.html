@@ -1,0 +1,11 @@
+<head><title>LED Wall</title><style>html{ font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}
+.button{ background-color: #195B6A; border: none; color: white; padding: 4px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;width: 400px}
+.button2 {background-color: #0000AA;}</style></head>
+<h3>LED Wall - Alarm Clock Settings</h3> 
+<form action="." method="POST">
+<p>Alarm Time: <input id="time" type="time" name="time" value="08:30"></p>
+<p>Alarm Duration: <input type="number" id="duration" name="duration" min="1" max="30" value="10"></p>
+<p>Enable Light Alarm Clock: <input type="checkbox" id="enabledAlarm" name="enableAlarm" value="enableAlarm" checked></p>
+   <input name="ButtonName" class="button" type="submit" value="Save Settings">
+</form>
+<p><a href="."><button class="button button2">Back</button></a></p>
