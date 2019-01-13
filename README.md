@@ -10,7 +10,7 @@ FastLED-Based LED Wall as Clock/Alarm Clock/Decoration/Mood Light
 - Connect FasLED-compatible (e.G. WS2812) LED strip to µC
   - See https://www.mschoeffler.de/2017/08/24/how-to-control-an-led-pixel-strip-ws2812b-with-an-arduino-and-the-fastled-library/ for example
   - I had problems with a resistor in the data line, as often suggested, so directly connect data ESP data pin to LED strip data pin
-    - Propably caused by signal beign only 3V -> ESP
+    - Propably caused by signal being only 3V -> ESP
 - Power LED strip with 5V
 - Power ESP8266 MCU via 5V from LED strip
 - ...
