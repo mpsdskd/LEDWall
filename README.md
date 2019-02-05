@@ -102,3 +102,5 @@ Color Picker:
   - Set the matrix dimensions to 30x8
   - Take the more fitting font
     - `#include <Font6x8_meins_nodemcu_v.h>`
+  - If you want the blinking colon between hours and minutes, as there is enough space for that with a 30x8 matrix
+    - `#define drawColon false`
