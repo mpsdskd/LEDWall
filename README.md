@@ -101,4 +101,4 @@ Color Picker:
 - The matrix here is set to 10x20, but I want 30x8 as in the pictures?
   - Set the matrix dimensions to 30x8
   - Take the more fitting font
-    - '#include <Font6x8_meins_nodemcu_v.h>'
+    - `#include <Font6x8_meins_nodemcu_v.h>`
