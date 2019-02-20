@@ -68,12 +68,12 @@ void fire(long counter) {
   // COOLING: How much does the air cool as it rises?
   // Less cooling = taller flames.  More cooling = shorter flames.
   // Default 55, suggested range 20-100
-  uint8_t COOLING = 55;
+  uint8_t COOLING = 320/kMatrixHeight;
 
   // SPARKING: What chance (out of 255) is there that a new spark will be lit?
   // Higher chance = more roaring fire.  Lower chance = more flickery fire.
   // Default 120, suggested range 50-200.
-  uint8_t SPARKING = 120;
+  uint8_t SPARKING = 50;
 
   for (int x = 0; x < kMatrixWidth; x++) {
     // Step 1.  Cool down every cell a little
@@ -81,12 +81,12 @@ void fire(long counter) {
       heat[x][i] = qsub8(heat[x][i], random(0, ((COOLING * 10) / kMatrixHeight) + 2));
     }
     // Step 2.  Heat from each cell drifts 'up' and diffuses a little
-    for (int k = kMatrixHeight; k > 0; k--) {
-      heat[x][k] = (heat[x][k - 1] + heat[x][k - 2] + heat[x][k - 2]) / 3;
+    for (int k = kMatrixHeight; k > 1; k--) {
+      heat[x][k] = (heat[x][k - 1] + heat[x][k - 2] + heat[x][k - 2]) / 4;
     }
     // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
     if (random(255) < SPARKING) {
-      int y = random(7);
+      int y = random(kMatrixHeight/3);
       heat[x][y] = qadd8(heat[x][y], random(160, 255));
     }
     // Step 4.  Map from heat cells to LED colors
@@ -103,7 +103,7 @@ void fire(long counter) {
       //          color = HeatColor(heat[y][(kMatrixWidth - 1) - x]);
       //          break;
       //        case Up:
-      color = HeatColor(heat[x][y]);
+      color = HeatColor(heat[x][kMatrixHeight-y]);
       //          break;
       //      }
       leds[XY(x, y)] = color;

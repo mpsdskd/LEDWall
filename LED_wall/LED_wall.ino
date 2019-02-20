@@ -16,7 +16,7 @@ extern "C" {
 
 //===== ↓↓↓ SETTINGS ↓↓↓ =====
 
-char boardname[]="ledwall";
+char boardname[] = "ledwall";
 
 #define SENSORPIN D5 //USE SOMETHING OTHER THAND D0, 2, 8 - stop ESP from booting
 #define BOARDLED 16
@@ -48,8 +48,8 @@ CRGB* const leds( leds_plus_safety_pixel + 1);
 // Param for different pixel layouts
 const bool    kMatrixSerpentineLayout = true;
 
-int volts=12;
-int milliamps=10000;
+int volts = 12;
+int milliamps = 10000;
 
 //===== ↑↑↑ SETTINGS ↑↑↑ =====
 
@@ -63,7 +63,7 @@ int sunriseDuration = 10;
 int sunriseBrightness = 255;
 int sunriseMinuteOfDay = 1000;
 File fsUploadFile;
-
+String tickerString = "";
 
 #include "LEDMatrixThings.h" // bright, drawLetter, darwTime, drawDate 
 #include "LEDMatrixEffects.h"
@@ -105,12 +105,15 @@ void refreshLEDs (void *pArg) {
     case 8:
       firework(effectCounter);
       break;
+    case 9:
+      ticker(tickerString, CHSV(effectCounter / 5, 255, 255), effectCounter);
+      break;
     case 100:
       break;
     case 0: //(Sunrise-) Clock
     default:
       local = CE.toLocal(now(), &tcr);
-      if (sunrise && (hour(local) * 60 + minute(local) < sunriseMinuteOfDay) && (hour(local) * 60 + minute(local) >= sunriseMinuteOfDay - sunriseDuration)) { //DOES NOT WORK AROUND 0:00 -> I DON'T CARE
+      if (sunrise && (hour(local) * 60 + minute(local) < sunriseMinuteOfDay) && (hour(local) * 60 + minute(local) > sunriseMinuteOfDay - sunriseDuration)) { //DOES NOT WORK AROUND 0:00 -> I DON'T CARE
         digitalWrite(BOARDLED, LOW);
         Serial.println("Sunrise");
         FastLED.setBrightness(sunriseBrightness);
@@ -175,12 +178,15 @@ void setup() {
 
     Serial.print("IP: ");
     Serial.println(WiFi.localIP());
+
+
+    drawstring("mDNS", CRGB(50, 50, 50));
     if (!MDNS.begin(boardname)) {             // Start the mDNS responder for esp8266.local
       Serial.println("Error setting up MDNS responder!");
     }
     Serial.println("mDNS responder started");
   }
-  drawstring("mDNS", CRGB(50, 50, 50));
+  drawstring("Pins", CRGB(50, 50, 50));
   if (true) { //PINS  //PINS  //PINS  //PINS
     pinMode(SENSORPIN, INPUT);
     pinMode(LED_BUILTIN, OUTPUT);
@@ -189,8 +195,8 @@ void setup() {
     digitalWrite(BOARDLED, LOW);
     Serial.println("Pins set up");
   }
-  drawstring("Pins", CRGB(50, 50, 50));
-  //Software interrupt - in ms ans not necessarily accurate timing
+
+  //Software interrupt - in ms and not necessarily accurate timing
   ESP.wdtDisable();
   ESP.wdtEnable(10);
   drawstring("Time", CRGB(50, 50, 50));
@@ -291,10 +297,16 @@ void setup() {
       }
       else webserver.send(400, "text/plain", "400: Invalid Request");
     });
-    webserver.on("/edit.html",  HTTP_POST, []() {  // If a POST request is sent to the /edit.html address,
+
+    webserver.on("/upload", HTTP_GET, []() {                 // if the client requests the upload page
+      webserver.send(200, "text/html  ", uploadForm);
+    });
+    webserver.on("/upload",  HTTP_POST, []() {  // If a POST request is sent to the /edit.html address,
       webserver.send(200, "text/plain", "");
     }, handleFileUpload);                       // go to 'handleFileUpload'
+
     webserver.onNotFound(handleNotFound);
+
     webserver.on("/", HTTP_GET, []() {
       sendRoot();
     });
@@ -350,7 +362,7 @@ void setup() {
     });
     webserver.on("/5", HTTP_GET, []() {
       sendRoot();
-      LEDRefreshInterval = 100;
+      LEDRefreshInterval = 80;
       wallMode = 5;
       manualBrightness = 255;
       Serial.println("Fire");
@@ -376,11 +388,18 @@ void setup() {
       manualBrightness = 255;
       Serial.println("Firework");
     });
+    webserver.on("/9", HTTP_GET, []() {
+      sendRoot();
+      LEDRefreshInterval = 50;
+      wallMode = 8;
+      manualBrightness = 255;
+      Serial.println("Ticker");
+    });
   }
 
   os_timer_setfn(&refreshTimer, refreshLEDs, NULL);
-  os_timer_arm(&refreshTimer, 10000, false);
-  
+  os_timer_arm(&refreshTimer, 5000, false);
+
   drawstring(" :)", CRGB(50, 50, 50));
   Serial.println("Finished Setup");
 }
@@ -390,7 +409,7 @@ void loop() {
   ArduinoOTA.handle();
   delay(20);
   if (now() - lastTime > 300) {
-    Serial.println("getting new time");
+    Serial.println("Getting new time");
     delay(100);
   }
 }
