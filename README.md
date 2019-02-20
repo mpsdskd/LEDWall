@@ -89,8 +89,13 @@ Color Picker:
 - AutoBrightness via Ping (Brightness increased, if computer is on or smartphone connected to home network)
 - Implementation of PIR-Sensor
 
-- Get Firework to not kill µC
-- Get Fire to look like fire
+- Get Firework to not kill µC    webserver.on("/9", HTTP_GET, []() {
+      sendRoot();
+      LEDRefreshInterval = 50;
+      wallMode = 8;
+      manualBrightness = 255;
+      Serial.println("Ticker");
+    });
 - Text display
 
 ### Untested
