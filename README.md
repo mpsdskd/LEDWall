@@ -89,7 +89,7 @@ Color Picker:
 - AutoBrightness via Ping (Brightness increased, if computer is on or smartphone connected to home network)
 - Implementation of PIR-Sensor
 
-- Get Firework to be bitten by WDT
+- Let Firework escape from the WDT
 - Text display
 
 ### Untested
