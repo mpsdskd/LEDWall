@@ -80,6 +80,7 @@ Color Picker:
   - https://github.com/jasoncoon/SmartMatrix-FastLED-Examples/blob/master/Fire1/Fire1.ino
   - Some more, that I do not remember right now
 - Webinterface: https://randomnerdtutorials.com/esp8266-web-server/
+- Single pixel drawing webinterface: https://rayshobby.net/wordpress/wifi-color-led-matrix/
   
 ## ToDo
 - Alarm Clock with Weekday settings
@@ -90,7 +91,6 @@ Color Picker:
 - Implementation of PIR-Sensor
 
 - Let Firework escape from the WDT
-- Text display
 
 ### Untested
 - Vertical clock layout (Hour over Minute instead of Hour:minute)
