@@ -80,14 +80,14 @@ uint16_t XY( uint8_t x, uint8_t y) {
   }
   return i;
 }
-uint16_t XYsafe( uint8_t x, uint8_t y) {
-  if ( x > kMatrixWidth) return -1;
-  if ( y > kMatrixHeight) return -1;
+uint16_t XYsafe( int x, int y) {
+  if ( x >= kMatrixWidth) return NUM_LEDS;
+  if ( y >= kMatrixHeight) return NUM_LEDS;
 
-  if ( x < 0 ) return -1;
-  if ( y < 0 ) return -1;
+  if ( x < 0 ) return NUM_LEDS;
+  if ( y < 0 ) return NUM_LEDS;
 
-  return XY(x, y);
+  return XY((uint8_t) x, (uint8_t) y);
 }
 void drawLetter(int posx, int posy, char letter, CRGB color) {
   //    Serial.print("Buchstabe:");
@@ -167,19 +167,28 @@ void runString(String str, CRGB fg, int del) {
   int l = str.length();
   Serial.println(l);
   for (int i = kMatrixWidth; i > -(FontWidth + 1)*l; i--) {
-    for (int c = 0; c < l; c++) {
-      drawLetter(i + (FontWidth + 1)*c, 0, str[c], fg);
+    for (int letter = 0; letter < l; letter++) {
+      drawLetter(i + (FontWidth + 1)*letter, 0, str[letter], fg);
     }
     FastLED.delay(del);
     FastLED.clear();
   }
 }
 void drawstring(String str, CRGB fg) {
-  for (int c = 0; c < str.length(); c++)  {
-    drawLetter((FontWidth + 1)*c, 0, str[c], fg);
+  for (int letter = 0; letter < str.length(); letter++)  {
+    drawLetter((FontWidth + 1)*letter, 0, str[letter], fg);
   }
   FastLED.show();
   FastLED.clear();
+}
+void ticker(String str, CRGB fg, int counter) {
+  int pos = 0;
+  if (str.length() * (FontWidth + 1) >= kMatrixWidth)
+    pos = counter % ((str.length() * (FontWidth + 1)) + 3*kMatrixWidth/2) - kMatrixWidth;
+  for (int letter = 0; letter < str.length(); letter++)  {
+    drawLetter((FontWidth + 1)*letter - pos, 0, str[letter], fg);
+  }
+
 }
 //DEFINE_GRADIENT_PALETTE( sunriseP ) {
 //  0,     1,  0,  0,   //black

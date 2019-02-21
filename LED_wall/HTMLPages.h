@@ -2,6 +2,7 @@ void sendRoot() {
   Serial.println("Send Root");
   File page = SPIFFS.open("/root.html", "r");
   webserver.streamFile(page, "text/html");
+  page.close();
 }
 String getContentType(String filename) { // determine the filetype of a given filename, based on the extension
   if (filename.endsWith(".html")) return "text/html";
@@ -51,8 +52,9 @@ void handleFileUpload() { // upload a new file to the SPIFFS
     if (fsUploadFile) {                                   // If the file was successfully created
       fsUploadFile.close();                               // Close the file again
       Serial.print("handleFileUpload Size: "); Serial.println(upload.totalSize);
-      webserver.sendHeader("Location", "/success.html");     // Redirect the client to the success page
-      webserver.send(303);
+//      webserver.sendHeader("Location", "/success.html");     // Redirect the client to the success page
+//      webserver.send(303);
+      webserver.send(303, "text/plain", "Great success");
     } else {
       webserver.send(500, "text/plain", "500: couldn't create file");
     }
@@ -63,6 +65,10 @@ void handleNotFound() { // if the requested file or page doesn't exist, return a
     webserver.send(404, "text/plain", "404: File Not Found");
   }
 }
+static const String uploadForm = "<form method=\"post\" enctype=\"multipart/form-data\">"
+                                 "<input type=\"file\" name=\"name\">"
+                                 "<input class=\"button\" type=\"submit\" value=\"Upload\">"
+                                 "</form>";
 
 String createSunrisePage() {
   static const String page = "<head><title>LED Wall</title><style>html{ font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}"
