@@ -52,8 +52,8 @@ void handleFileUpload() { // upload a new file to the SPIFFS
     if (fsUploadFile) {                                   // If the file was successfully created
       fsUploadFile.close();                               // Close the file again
       Serial.print("handleFileUpload Size: "); Serial.println(upload.totalSize);
-//      webserver.sendHeader("Location", "/success.html");     // Redirect the client to the success page
-//      webserver.send(303);
+      //      webserver.sendHeader("Location", "/success.html");     // Redirect the client to the success page
+      //      webserver.send(303);
       webserver.send(303, "text/plain", "Great success");
     } else {
       webserver.send(500, "text/plain", "500: couldn't create file");
@@ -104,4 +104,119 @@ String createSunrisePage() {
 
 void sendSunrisePage() {
   webserver.send(200, "text/html  ", createSunrisePage());
+}
+
+String matrixInput() {
+  String page = R"(<!--Thanks Rayshobby Shop https://rayshobby.net/wordpress/
+https://rayshobby.net/wordpress/wifi-color-led-matrix/ -->
+<head>
+  <title>LEDWall Pixel Input</title>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <style>
+    .color-sel { width: 24px; height: 24px; text-align: center;}
+    .pixel-sel { width: 48px; height: 48px; background-color: black; }
+    .button{ background-color: #195B6A; border: none; color: white; padding: 4px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;width: 400px}
+    .button2 {background-color: #0000AA;}
+    button { font-size: 16px; }
+    p { font-size:18px; font-style:normal; line-height:0px; }
+    table { border-color:lightgray; border-collapse:collapse; }
+  </style>
+</head>
+<body>
+  <script>
+    var x=)";
+
+  page += String(kMatrixWidth);
+
+  page +=
+    R"(;
+    var y=)";
+
+  page += String(kMatrixHeight);
+
+  page +=
+    R"(;
+    var px=x*y;
+    var nh=12,i,j,cc='rgb(255, 255, 255)';
+    var cc_elem;
+    function w(s) { document.write(s); }
+    function id(s){ return document.getElementById(s); }
+    function mark(e) {e.innerHTML='&#10004;';}
+    function cs_click(e) {
+      var bg=e.target.style.background;
+      cc_elem.innerHTML='';
+      mark(e.target);
+      cc=bg;
+      cc_elem=e.target;
+    }
+    w('<table border=1>');
+    idx=0;
+    for(i=0;i<2;i++) {
+      w('<tr>');
+      for(j=0;j<nh;j++,idx++) {
+        w('<td class=color-sel id=cs'+idx+'></td>');
+        var obj=id('cs'+idx);
+        if(i==0) { var hue=(j/nh)*360; obj.style.background='hsl('+hue+',100%,50%)'; }
+        else { var lit=(j/(nh-1))*100; obj.style.background='hsl(0,0%,'+lit+'%)'; }
+        obj.addEventListener('click',cs_click);
+      }
+      w('</tr>');
+    }
+    w('</table>');
+    cc_elem=id('cs'+(2*nh-1));
+    mark(cc_elem);
+  </script>
+  <hr />
+  <p>Set pixel color: </p>
+  <p><button id='btn_fill'>Fill</button> <button id='btn_clear'>Clear</button> <button id='btn_submit'><b>Submit</b></button></p>
+  <script>
+    function ps_click(e) { if(e.target.style.background==cc) e.target.style.background='rgb(0,0,0)'; else e.target.style.background=cc; }
+    w('<table border=1 style="border-collapse: separate; border-spacing: 2px;">');
+    idx=0;
+    for(i=0;i<y;i++) {
+      w('<tr>');
+      for(j=0;j<x;j++,idx++) {
+        w('<td class=pixel-sel id=ps'+idx+'></td>');
+        id('ps'+idx).addEventListener('click',ps_click);
+        id('ps'+idx).style.background = 'rgb(0, 0, 0)';
+      }
+      w('</tr>');
+    }
+    w('</table>');
+  </script>
+  <script>
+    function rgb2hex(orig){
+        var rgb = orig.replace(/\s/g,'').match(/^rgba?\((\d+),(\d+),(\d+)/i);
+        return (rgb && rgb.length === 4) ? "" +
+        ("0" + parseInt(rgb[1],10).toString(16)).slice(-2) +
+        ("0" + parseInt(rgb[2],10).toString(16)).slice(-2) +
+        ("0" + parseInt(rgb[3],10).toString(16)).slice(-2) : orig;
+    }
+    id('btn_fill').addEventListener('click',function(e) {
+      for(i=0;i<px;i++) id('ps'+i).style.background = cc;
+    });
+    id('btn_clear').addEventListener('click',function(e) {
+      for(i=0;i<px;i++) id('ps'+i).style.background = 'rgb(0, 0, 0)';
+    });
+    function send_comm(comm) {
+      var xhr=new XMLHttpRequest();
+      xhr.onreadystatechange=function() {
+        if(xhr.readyState==4 && xhr.status==200) {
+          var jd=JSON.parse(xhr.responseText);
+          // jd stores the response data
+        }
+      };
+      comm = '.'+comm;
+      xhr.open('GET',comm,true);
+      xhr.send();
+    }
+    id('btn_submit').addEventListener('click', function(e) {
+      var comm='/cc?pixels=';
+      for(i=0;i<px;i++) comm+=rgb2hex(id('ps'+i).style.background);
+      send_comm(comm);
+    });
+  </script>
+  <p><a href="."><button class="button button2">Back</button></a></p>
+</body>)";
+  return page;
 }

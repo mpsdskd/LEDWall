@@ -402,8 +402,23 @@ void setup() {
       sendRoot();
       //webserver.send(200, "text/html", "Displaying \"" + tickerString + "\"</h1><p></p><a href=\"/\">Home</a>");
     });
+        webserver.on("/cc", HTTP_GET, []() {
+      FastLED.clear();
+      if (webserver.hasArg("pixels")) {
+        String val = webserver.arg("pixels");
+        int i = 0;
+        for (int y = 0; y < kMatrixHeight; y++) {
+          for (int x = 0; x < kMatrixWidth; x++) {
+            leds[XYsafe(x, y)] = strtol(val.substring(i * 6, i * 6 + 6).c_str(), NULL, 16);
+            i++;
+          }
+        }
+        wallMode = 100;
+        FastLED.show();
+      }
+      webserver.send(200, "text/html", matrixInput());
+    });
   }
-  
   //Software interrupt - in ms and not necessarily accurate timing
   os_timer_setfn(&refreshTimer, refreshLEDs, NULL);
   os_timer_arm(&refreshTimer, 5000, false);
