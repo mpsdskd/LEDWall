@@ -16,13 +16,13 @@ const char* ntpServerName = "time.nist.gov";
 const int NTP_PACKET_SIZE = 48; // NTP time stamp is in the first 48 bytes of the message
 byte packetBuffer[ NTP_PACKET_SIZE]; //buffer to hold incoming and outgoing packets
 //Central European Time (Frankfurt, Paris)
-TimeChangeRule CEST = {
-  "CEST", Last, Sun, Mar, 2, 120
-};     //Central European Summer Time
-TimeChangeRule CET = {
-  "CET ", Last, Sun, Oct, 3, 60
-};       //Central European Standard Time
+TimeChangeRule CEST = {"CEST", Last, Sun, Mar, 2, 120};     //Central European Summer Time
+TimeChangeRule CET = {"CET ", Last, Sun, Oct, 3, 60};       //Central European Standard Time
 Timezone CE(CEST, CET);
+////EDT/EST
+//TimeChangeRule EDT = {"EDT", Second, Sun, Mar, 2, -240};     //Central European Summer Time
+//TimeChangeRule EST = {"EST ", First, Sun, Nov, 2, -300};       //Central European Standard Time
+//Timezone CE(EDT, EST);
 TimeChangeRule *tcr;        //pointer to the time change rule, use to get the TZ abbrev
 time_t utc, local;
 // A UDP instance to let us send and receive packets over UDP
