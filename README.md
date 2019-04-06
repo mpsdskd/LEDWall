@@ -7,6 +7,8 @@ A fellow Maker created this beatiful video: https://www.youtube.com/watch?v=E3wu
 
 Thank you very much!
 
+Also check out the other branches!
+
 ## HowTo
 - Install necessary libraries
 - Acquire ESP8266
