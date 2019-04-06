@@ -1,6 +1,9 @@
 # LEDWall
 FastLED-Based LED Wall as Clock/Alarm Clock/Decoration/Mood Light
 
+A fellow Maker created this beatiful video: https://www.youtube.com/watch?v=E3wuyTViBlI&t=
+Thank you very much!
+
 ## HowTo
 - Install necessary libraries
 - Acquire ESP8266
