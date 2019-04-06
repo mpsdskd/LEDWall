@@ -16,13 +16,13 @@ extern "C" {
 
 //===== ↓↓↓ SETTINGS ↓↓↓ =====
 
-char boardname[] = "ledwall";
+char boardname[] = "LEDCLock";
 
 #define SENSORPIN D5 //USE SOMETHING OTHER THAND D0, 2, 8 - stop ESP from booting
-#define BOARDLED 16
+#define BOARDLED LED_BUILTIN
 #define sensor false
 
-int LEDRefreshInterval = 50;
+int LEDRefreshInterval = 500;
 os_timer_t refreshTimer;
 //os_timer_t ntpTimer;
 time_t lastTime;
@@ -31,16 +31,13 @@ time_t lastTime;
 
 //LED
 // Params for width and height
-const uint8_t kMatrixWidth = 20;
-const uint8_t kMatrixHeight = 10;
-
-#define drawColon false
-#define secondsBar false
+const uint8_t kMatrixWidth = 60;
+const uint8_t kMatrixHeight = 2;
 
 #define NUM_LEDS kMatrixWidth*kMatrixHeight
 #define FASTLED_ALLOW_INTERRUPTS 0
 #include <FastLED.h>
-#define LED_PIN         D1
+#define LED_PIN         8
 #define COLOR_ORDER     GRB
 #define CHIPSET         WS2812B
 CRGB leds_plus_safety_pixel[ NUM_LEDS + 1];
@@ -48,8 +45,8 @@ CRGB* const leds( leds_plus_safety_pixel + 1);
 // Param for different pixel layouts
 const bool    kMatrixSerpentineLayout = true;
 
-int volts = 12;
-int milliamps = 10000;
+int volts = 5;
+int milliamps = 2500;
 
 //===== ↑↑↑ SETTINGS ↑↑↑ =====
 
@@ -57,17 +54,19 @@ int brightness = 1;
 int manualBrightness = -1;
 int wallMode = 0;
 long effectCounter = 0;
+bool lotsoflight = true;
 
 bool sunrise = false;
 int sunriseDuration = 10;
 int sunriseBrightness = 255;
 int sunriseMinuteOfDay = 1000;
 File fsUploadFile;
-String tickerString = "";
+
 
 #include "LEDMatrixThings.h" // bright, drawLetter, darwTime, drawDate 
 #include "LEDMatrixEffects.h"
 #include "FireworkEffect.h"
+#include "DrawClock.h"
 
 ESP8266WebServer webserver(80);   //Web server object. Will be listening in port 80 (default for HTTP)
 WebSocketsServer webSocket(81);
@@ -75,10 +74,11 @@ WebSocketsServer webSocket(81);
 #include "websocket.h"
 
 void refreshLEDs (void *pArg) {
-  //Serial.println("Start update");
   effectCounter += 1;
   FastLED.setBrightness(manualBrightness);
-  digitalWrite(LED_BUILTIN, LOW);
+  if (manualBrightness > 0 && manualBrightness < 255) {
+    digitalWrite(LED_BUILTIN, LOW);
+  }
   switch (wallMode) {
     case 1:
       parttrail(effectCounter);
@@ -105,53 +105,55 @@ void refreshLEDs (void *pArg) {
     case 8:
       firework(effectCounter);
       break;
-    case 9:
-      FastLED.clear();
-      ticker(tickerString, CHSV(effectCounter / 5, 255, 255), effectCounter);
-      break;
     case 100:
       break;
     case 0: //(Sunrise-) Clock
     default:
       local = CE.toLocal(now(), &tcr);
-      if (sunrise && (hour(local) * 60 + minute(local) < sunriseMinuteOfDay) && (hour(local) * 60 + minute(local) > sunriseMinuteOfDay - sunriseDuration)) { //DOES NOT WORK AROUND 0:00 -> I DON'T CARE
+      //DOES NOT WORK AROUND 0:00 -> I DON'T CARE
+      if (sunrise && (hour(local) * 60 + minute(local) <= sunriseMinuteOfDay) && (hour(local) * 60 + minute(local) >= (sunriseMinuteOfDay - sunriseDuration))) {
+        FastLED.clear();
         digitalWrite(BOARDLED, LOW);
         Serial.println("Sunrise");
         FastLED.setBrightness(sunriseBrightness);
         for (int i = 0; i < NUM_LEDS; i++) {
           leds[i] = HeatColor(map(hour(local) * 3600 + minute(local) * 60 + second(local) - (sunriseMinuteOfDay - sunriseDuration) * 60, 0, 60 * sunriseDuration, 0, 255));
         }
-        long a = sq(hour(local) * 3600 + minute(local) * 60 + second(local) - (sunriseMinuteOfDay - sunriseDuration) * 60);
-        drawTime(local, 0, 0, CHSV(150, 150, map(a, 0, 3600 * sq(sunriseDuration), 10, 255)), drawColon, secondsBar);
+        //long a = sq(hour(local) * 3600 + minute(local) * 60 + second(local) - (sunriseMinuteOfDay - sunriseDuration) * 60);
+        //drawTime(local, 0, 0, CHSV(150, 150, map(a, 0, 3600 * sq(sunriseDuration), 1, 255)));
       }
       else {
-        fadeToBlackBy( leds, NUM_LEDS, 16);
+        // fadeToBlackBy( leds, NUM_LEDS, 1);
+        FastLED.clear();
         if (manualBrightness < 0 || manualBrightness > 255) {
           setBright(local);
         }
-        drawTime(local, 0, 0, CHSV((60 * minute(now()) + second(now())) * 256 / 3600, 255, 255), drawColon, secondsBar);
+        //drawTime(local, 0, 0, CHSV((60 * minute(now()) + second(now())) * 256 / 3600, 255, 255));
+        if (brightness > 20) {
+          lotsoflight = true;
+        }
+        else {
+          lotsoflight = false;
+        }
+        DrawClock(local);
+        if (minute(local) == 0 && second(local) < 30 && brightness >= 8)
+        {
+          REGENBOGEN(effectCounter);
+        }
       }
   }
   digitalWrite(LED_BUILTIN, HIGH);
   FastLED.show();
   os_timer_arm(&refreshTimer, LEDRefreshInterval, false);
-  //Serial.println("update finished");
 }
 
 void setup() {
   Serial.begin(1000000);
   Serial.println("Start!");
   delay(500);
-  if (true) { //LEDs  //LEDs  //LEDs  //LEDs
-    FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);
-    FastLED.setMaxPowerInVoltsAndMilliamps(volts, milliamps);
-    // FastLED.setDither(0);
-    Serial.println("LEDs set up");
-    fill_solid( leds, NUM_LEDS, CRGB(20, 0, 0));
-    FastLED.show();
-  }
-  FastLED.clear();
-  drawstring("WiFi", CRGB(50, 50, 50));
+  fill_solid( leds, NUM_LEDS, CRGB(50, 0, 0));
+  FastLED.show();
+
   //  mySunrise.Actual();
   if (true) { //<- if clause for code folding in arduino //WiFi Manager  //WiFi Manager  //WiFi Manager  //WiFi Manager
     //WiFiManager
@@ -179,15 +181,11 @@ void setup() {
 
     Serial.print("IP: ");
     Serial.println(WiFi.localIP());
-
-
-    drawstring("mDNS", CRGB(50, 50, 50));
     if (!MDNS.begin(boardname)) {             // Start the mDNS responder for esp8266.local
       Serial.println("Error setting up MDNS responder!");
     }
     Serial.println("mDNS responder started");
   }
-  drawstring("Pins", CRGB(50, 50, 50));
   if (true) { //PINS  //PINS  //PINS  //PINS
     pinMode(SENSORPIN, INPUT);
     pinMode(LED_BUILTIN, OUTPUT);
@@ -196,21 +194,29 @@ void setup() {
     digitalWrite(BOARDLED, LOW);
     Serial.println("Pins set up");
   }
-
+  if (true) { //LEDs  //LEDs  //LEDs  //LEDs
+    FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+    FastLED.setMaxPowerInVoltsAndMilliamps(volts, milliamps);
+    // FastLED.setDither(0);
+    Serial.println("LEDs set up");
+  }
+  //Software interrupt - in ms ans not necessarily accurate timing
   ESP.wdtDisable();
   ESP.wdtEnable(10);
-  drawstring("Time", CRGB(50, 50, 50));
   while (!gettime()) {}
+  os_timer_setfn(&refreshTimer, refreshLEDs, NULL);
+  os_timer_arm(&refreshTimer, LEDRefreshInterval, false);
+  //  os_timer_setfn(&ntpTimer, ntpRefresh, NULL);
+  //  os_timer_arm(&ntpTimer, 30000, false);
+  Serial.print("It's night: "); Serial.println(night);
 
   SPIFFS.begin();
   webSocket.begin();                          // start the websocket server
   webSocket.onEvent(webSocketEvent);          // if there's an incomming websocket message, go to function 'webSocketEvent'
   Serial.println("WebSocket server started.");
 
-  drawstring("OTA", CRGB(50, 50, 50));
 #include "ArduinoOTASetup.h";
 
-  drawstring("Web", CRGB(50, 50, 50));
   if (SPIFFS.exists("/sunrise.json")) {
     File sunriseFile = SPIFFS.open("/sunrise.json", "r");
     if (!sunriseFile) {
@@ -297,16 +303,16 @@ void setup() {
       }
       else webserver.send(400, "text/plain", "400: Invalid Request");
     });
-
     webserver.on("/upload", HTTP_GET, []() {                 // if the client requests the upload page
       webserver.send(200, "text/html  ", uploadForm);
     });
     webserver.on("/upload",  HTTP_POST, []() {  // If a POST request is sent to the /edit.html address,
       webserver.send(200, "text/plain", "");
     }, handleFileUpload);                       // go to 'handleFileUpload'
-
+    webserver.on("/edit.html",  HTTP_POST, []() {  // If a POST request is sent to the /edit.html address,
+      webserver.send(200, "text/plain", "");
+    }, handleFileUpload);                       // go to 'handleFileUpload'
     webserver.onNotFound(handleNotFound);
-
     webserver.on("/", HTTP_GET, []() {
       sendRoot();
     });
@@ -327,7 +333,7 @@ void setup() {
     });
     webserver.on("/0", HTTP_GET, []() {
       sendRoot();
-      LEDRefreshInterval = 50;
+      LEDRefreshInterval = 200;
       wallMode = 0;
       manualBrightness = -1;
       Serial.println("(Sunrise) Clock");
@@ -362,7 +368,7 @@ void setup() {
     });
     webserver.on("/5", HTTP_GET, []() {
       sendRoot();
-      LEDRefreshInterval = 80;
+      LEDRefreshInterval = 100;
       wallMode = 5;
       manualBrightness = 255;
       Serial.println("Fire");
@@ -388,42 +394,7 @@ void setup() {
       manualBrightness = 255;
       Serial.println("Firework");
     });
-    webserver.on("/9", HTTP_GET, []() {
-      File page = SPIFFS.open("/textinput.html", "r");
-      webserver.streamFile(page, "text/html");
-      page.close();
-      Serial.println("Ticker Settings");
-    });
-    webserver.on("/9", HTTP_POST, []() {
-      LEDRefreshInterval = 150;
-      wallMode = 9;
-      manualBrightness = 255;
-      tickerString = webserver.arg("ticker");
-      sendRoot();
-      //webserver.send(200, "text/html", "Displaying \"" + tickerString + "\"</h1><p></p><a href=\"/\">Home</a>");
-    });
-        webserver.on("/cc", HTTP_GET, []() {
-      FastLED.clear();
-      if (webserver.hasArg("pixels")) {
-        String val = webserver.arg("pixels");
-        int i = 0;
-        for (int y = 0; y < kMatrixHeight; y++) {
-          for (int x = 0; x < kMatrixWidth; x++) {
-            leds[XYsafe(x, y)] = strtol(val.substring(i * 6, i * 6 + 6).c_str(), NULL, 16);
-            i++;
-          }
-        }
-        wallMode = 100;
-        FastLED.show();
-      }
-      webserver.send(200, "text/html", matrixInput());
-    });
   }
-  //Software interrupt - in ms and not necessarily accurate timing
-  os_timer_setfn(&refreshTimer, refreshLEDs, NULL);
-  os_timer_arm(&refreshTimer, 5000, false);
-
-  drawstring(" :)", CRGB(50, 50, 50));
   Serial.println("Finished Setup");
 }
 void loop() {
@@ -432,7 +403,8 @@ void loop() {
   ArduinoOTA.handle();
   delay(20);
   if (now() - lastTime > 300) {
-    Serial.println("Getting new time");
-    delay(100);
+    Serial.println("getting new time");
+    Serial.println(gettime()); //gettime does not seem to work with a timer, as it takes too long and the watchdog bites
+    delay(500);
   }
 }

@@ -2,14 +2,7 @@
 FastLED-Based LED Wall as Clock/Alarm Clock/Decoration/Mood Light
 
  
-
-A fellow Maker created this beatiful video: https://www.youtube.com/watch?v=E3wuyTViBlI&t=
-
-Thank you very much!
-
- 
-
-Also check out the other branches of this project!
+This branch is for a round clock made from 2 60 LED long strips
 
 ## HowTo
 - Install necessary libraries
