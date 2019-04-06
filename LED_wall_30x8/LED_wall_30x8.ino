@@ -434,6 +434,7 @@ void loop() {
   delay(20);
   if (now() - lastTime > 300) {
     Serial.println("Getting new time");
+    Serial.println(gettime()); //gettime does not seem to work with a timer, as it takes too long and the watchdog bites
     delay(100);
   }
 }
