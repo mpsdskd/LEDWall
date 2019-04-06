@@ -1,4 +1,4 @@
-# LEDWall
+# LEDWall - 30x8 Pixels
 FastLED-Based LED Wall as Clock/Alarm Clock/Decoration/Mood Light
 
  
