@@ -29,13 +29,14 @@ if verbosity > 0:
     if verbosity>9:
         level=logging.DEBUG
 if not logger.handlers:
-    logging.basicConfig(#filename='SLC.log',
+    filename=None #'SLC.log'
+    logging.basicConfig(filename=filename,
                 filemode='w',
-                format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                format='%(asctime)s  %(levelname)s %(message)s',
                 datefmt='%H:%M:%S',
                 level=level)
 
-    if len(logging.getLogger().handlers) < 2:
+    if len(logger.handlers) < 2 and filename:
         logging.getLogger().addHandler(logging.StreamHandler())
         print("Verbosity high for console output")
 
@@ -81,7 +82,6 @@ async def periodic():
             for rule in rules:
                 if rule["type"]=="ping":
                     if not "last_state" in rule.keys():
-
                         logger.debug("nonexistent last_state")
                         rule["last_state"]="asdf"
                     
@@ -90,6 +90,16 @@ async def periodic():
                         if ping(device):
                             logger.info("Found active device")
                             actual_state = True
+                            break
+                    # delay and retry onece more to disable some light
+                    if actual_state == False and rule["last_state"]==True:
+                        logger.info("Retrying because state changed to off")
+                        asyncio.sleep(20)
+                        for device in rule["ping_devices"]:
+                            if ping(device):
+                                logger.info("Found active device")
+                                actual_state = True
+                                break
                     if actual_state != rule["last_state"]:
                         if actual_state:
                             logger.info("Activating devices")
@@ -107,7 +117,7 @@ async def periodic():
             logger.error(e)
 
                     
-        await asyncio.sleep(5)
+        await asyncio.sleep(10)
 
 def stop():
     task.cancel()
