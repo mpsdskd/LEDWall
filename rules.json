@@ -25,7 +25,7 @@
             "ping",
         "ping_devices":
             [
-                "192.168.178.33",
+                "192.168.178.33"
             ],
         "activate_devices":
             [
