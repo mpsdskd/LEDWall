@@ -4,6 +4,9 @@
             "ping",
         "ping_devices":
             [
+                "192.168.178.21",
+                "192.168.178.65",
+                "192.168.178.10",
                 "192.168.178.21"
             ],
         "activate_devices":
@@ -14,6 +17,24 @@
                     "brightness":300,
                     "mode":null,
                     "fade":false
+                }
+            ]
+    },
+    {
+        "type":
+            "ping",
+        "ping_devices":
+            [
+                "192.168.178.33",
+            ],
+        "activate_devices":
+            [
+                {
+                    "Comment":"SmartLight",
+                    "address":"192.168.178.28",
+                    "brightness":255,
+                    "mode":null,
+                    "fade":true
                 }
             ]
     },

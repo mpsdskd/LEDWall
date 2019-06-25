@@ -22,15 +22,15 @@ import subprocess
 
 logger = logging.getLogger("SmartLightControl")
 
-verbosity = 100
+verbosity = 5
 level = logging.ERROR
 if verbosity > 0:
     level=logging.INFO
     if verbosity>9:
         level=logging.DEBUG
 if not logger.handlers:
-    logging.basicConfig(filename='SLC.log',
-                filemode='a',
+    logging.basicConfig(#filename='SLC.log',
+                filemode='w',
                 format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
                 datefmt='%H:%M:%S',
                 level=level)
@@ -55,6 +55,7 @@ with open("rules.json") as json_file:
     logger.debug(rules)
 
 async def set_brightness(address, brightness, fade=False, start=0, delay=0.1):
+    logger.info("Setting brightness " + str(brightness))
     if not fade:
         start = brightness
     if start > brightness:
@@ -97,7 +98,7 @@ async def periodic():
                         else:
                             logger.info("Deactivating devices")
                             for device in rule["activate_devices"]:
-                                await set_brightness(device["address"], 0, fade=device["fade"], start=8, delay=0)
+                                await set_brightness(device["address"], 0, fade=device["fade"], start=10, delay=1)
                     else:
                         logger.info("State did not change")
                     rule["last_state"]  = actual_state
