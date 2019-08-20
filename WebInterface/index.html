@@ -71,9 +71,10 @@
 
 var lights = [
 //     {"hostname": "192.168.178.38", "name": "Kitchen Top"},
-    {"hostname": "192.168.178.24", "name": "Desk"},
-    {"hostname": "192.168.178.38", "name": "Kitchen Top"},
-    {"hostname": "192.168.178.28", "name": "Living Room"}
+    {"hostname": "192.168.178.24", "name": "Desk", "main_group": true},
+    {"hostname": "192.168.178.38", "name": "Kitchen Top", "main_group": true},
+    {"hostname": "192.168.178.28", "name": "Living Room", "main_group": true},
+    {"hostname": "192.168.178.22", "name": "LED Wall", "main_group": false}
 ];
 
 //==================↓↓↓ FUNCTIONS ↓↓↓=======
@@ -91,11 +92,13 @@ function hidealliframes(){
     
 var connections = [];
 lights.forEach(function(light){ 
-    connections.push(new WebSocket("ws://" + light.hostname + ":81/", ["arduino"]));
-    console.log(light);
+    if (light.main_group){
+        connections.push(new WebSocket("ws://" + light.hostname + ":81/", ["arduino"]));
+        console.log(light);
+    };
 });
 
-connections.forEach(function(connection){
+connections.forEach(function(connection){ 
     connection.onopen = function () {
     connection.send("Connect " + new Date());
     };
@@ -130,9 +133,11 @@ connections.forEach(function(connection){
 
 function sendGet(link) {
     lights.forEach(function(light){
-        var xmlHttp = new XMLHttpRequest();
-        xmlHttp.open( "GET", "http://"+light.hostname+"/"+link, true); // false for synchronous request
-        xmlHttp.send( null );
+        if (light.main_group){
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.open( "GET", "http://"+light.hostname+"/"+link, true); // false for synchronous request
+            xmlHttp.send( null );
+        };
     });
 };
 
