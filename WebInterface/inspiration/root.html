@@ -1,0 +1,28 @@
+<head><title>LED Wall</title><style>html{ font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}
+.button{ background-color: #195B6A; border: none; color: white; padding: 4px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;width: 400px}
+.button2 {background-color: #0000AA;}
+.slider {width:50%}
+</style>
+<script src="root.js" type="text/javascript"></script>
+</head>
+<h3>LED Wall - Effects</h3>
+
+<td style="width:14.4px; text-align: right">Brightness: </td> 
+<p><td><input class="enabled slider" id="b" type="range" min="0" max="255" step="1" oninput="sendBrightness();" value="0"></td></p>
+<td style="width:14.4px; text-align: right">Refresh Interval: </td> 
+<p><td><input class="enabled slider" id="i" type="range" min="10" max="1000" step="1" oninput="sendInterval();" value="0"></td></p>
+
+<p><a href="0"><button class="button">(Alarm) Clock</button></a></p>
+<p><a href="sunrise"><button class="button button2">Alarm Settings</button></a></p>
+<p><a href="solid"><button class="button button2">Solid Color</button></a></p>
+<p><a href="cc"><button class="button button2">Draw</button></a></p>
+<p><a href="9"><button class="button button2">Ticker</button></a></p>
+<p><a href="1"><button class="button">Particle Trail</button></a></p>
+<p><a href="2"><button class="button">Math Rainbow</button></a></p>
+<p><a href="3"><button class="button">Gradient</button></a></p>
+<p><a href="4"><button class="button">Speckles</button></a></p>
+<p><a href="5"><button class="button">Fire</button></a></p>
+<!--<p><a href="6"><button class="button">Swirl</button></a></p>-->
+<p><a href="7"><button class="button">Gradient 2D</button></a></p>
+<p><a href="8"><button class="button">Firework</button></a></p>
+<p><a href="sunrise.json">Sunrise Light Settings</a></p>
