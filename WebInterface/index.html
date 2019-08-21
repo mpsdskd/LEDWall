@@ -57,7 +57,7 @@
 <p><td><input class="slider" id="all_i" type="range" min="10" max="1000" step="1" oninput="sendAllInterval();" value="0"></td></p>
 
 <td style="width:14.4px; text-align: right">Solid Color: </td> 
-<p><input readonly = "true" value="Color Selector" class="jscolor {onFineChange:'update(this)',width:800, height:450, position:'middle',
+<p><input type="text" value="Color Selector" class="jscolor {onFineChange:'update(this)',width:800, height:600, position:'middle',
     borderColor:'#FFF', insetColor:'#FFF', backgroundColor:'#666'}" style="width:80%;"></p>
 <br>
     
@@ -89,14 +89,25 @@ function hidealliframes(){
         document.getElementById(value.name.replace(/\s/g, '')).style.display = "none";
     });
 };
+function closeallconnections(){
+connections.forEach(function(connection){
+    connection.close();
+});
+connections = []
+};
     
 var connections = [];
-lights.forEach(function(light){ 
-    if (light.main_group){
-        connections.push(new WebSocket("ws://" + light.hostname + ":81/", ["arduino"]));
-        console.log(light);
-    };
-});
+
+function createconnections(){
+    lights.forEach(function(light){ 
+        if (light.main_group){
+            connections.push(new WebSocket("ws://" + light.hostname + ":81/", ["arduino"]));
+            console.log(light);
+        };
+    });
+};
+
+createconnections();
 
 connections.forEach(function(connection){ 
     connection.onopen = function () {
@@ -141,6 +152,15 @@ function sendGet(link) {
     });
 };
 
+function refreshWS(){
+    checkboxes.forEach(function(value, i){
+        lights[i].main_group = value.checked
+    });
+    console.log(lights);
+    closeallconnections();
+    createconnections();
+};
+
 //==================↓↓↓ Creating Stuff on site ↓↓↓=======
 // ALL
 var modes = {"0":"Off", "1":"Particle Trail", "2":"Rainbow", "3":"Gradient", "4":"Speckles"}
@@ -160,6 +180,7 @@ var t = document.createTextNode("Single");
 x.appendChild(t);
 document.body.appendChild(x);
 // Single
+var checkboxes = []
 lights.forEach(function(value, i){
     var button = document.createElement('button');
     button.className="button button2";
@@ -171,12 +192,21 @@ lights.forEach(function(value, i){
     ifrm.setAttribute("src", "http://"+value.hostname);
     ifrm.className="iframe";
     ifrm.style.display = "none";
+    
+    var chk = document.createElement("input");
+    chk.type="checkbox";
+    chk.if = "cb"+i;
+    chk.checked = value.main_group
+    chk.onclick=refreshWS
         
     var para = document.createElement("P");
+    para.appendChild(chk); 
     para.appendChild(button); 
     para.appendChild(ifrm); 
     document.body.appendChild(para);
+    checkboxes.push(chk);
 });
+console.log(checkboxes);
 
 document.getElementById('greyout').onclick = hidealliframes;
 	
@@ -186,31 +216,25 @@ function wsSendCommand(cmd) {
             connection.send(cmd);
         });
 }	
-
 function componentToHex(c) {
         //var hex = c.toString(16);
         //return hex.length == 1 ? "0" + hex : hex;
         return  ("0"+(Number(c).toString(16))).slice(-2).toUpperCase();
 }
-
 function wsSetMainColor(hexColor) {
 console.log("wsSetMainColor() Set main colors to:", hexColor);
 wsSendCommand("#" + hexColor);
 }
-
 function wsSetAll(hexColor) {
 console.log("wsSetAll() Set all colors to:", hexColor);
 wsSendCommand("*" + hexColor);
 }
 function update(picker) {
-
     var red = Math.round(picker.rgb[0]);
     var green = Math.round(picker.rgb[1]);
     var blue = Math.round(picker.rgb[2]);
-        
-		var mainColorHex = componentToHex(red) + componentToHex(green) + componentToHex(blue);
-
-		wsSetAll(mainColorHex);
+    var mainColorHex = componentToHex(red) + componentToHex(green) + componentToHex(blue);
+    wsSetAll(mainColorHex);
 }
 </script>
 </body>
