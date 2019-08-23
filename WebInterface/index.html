@@ -1,10 +1,38 @@
 <!DOCTYPE html>
 <html>
 <style type="text/css">html{ font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center; color: #ffffff}
-.button{ background-color: #195B6A; border: none; color: white; padding: 4px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;width: 400px}
-.button2 {background-color: #0000AA; width: 380px}
+.button{ background-color: #195B6A; border: none; color: white; padding: 4px; text-decoration: none; font-size: 30px; margin: 0px; cursor: pointer; width: 400px; vertical-align: middle;}
+.button2 {background-color: #0000AA; width: 350px}
 .slider {width:80%; height: 4%; background: #888;}
 .iframe {position: absolute; width: 80%; height: 90vh; top:5%; left: 10%; z-index:999; background: #ffffff; background-color:rgba(255,255,255,0.9)}
+.regular-checkbox {
+	-webkit-appearance: none;
+	background-color: #000066;
+	border: 1px solid #444;
+/*	box-shadow: 0 1px 2px rgba(0,0,0,0.05), inset 0px -15px 10px -12px rgba(0,0,0,0.05);*/
+	padding: 9px;
+	border-radius: 0px;
+	display: inline-block;
+	position: relative;
+}
+.regular-checkbox:active, .regular-checkbox:checked:active {
+/*	box-shadow: 0 1px 2px rgba(0,0,0,0.05), inset 0px 1px 3px rgba(0,0,0,0.1);*/
+}
+.regular-checkbox:checked {
+	background-color: #0000AA;/*
+	border: 0px solid #888;*/
+/*	box-shadow: 0 1px 2px rgba(0,0,0,0.05), inset 0px -15px 10px -12px rgba(0,0,0,0.05), inset 15px 10px -12px rgba(255,255,255,0.1);*/
+	color: #99a1a7;
+}
+.regular-checkbox:checked:after {
+	content: 'x';
+	font-size: 40px;
+	position: absolute;
+	top: 0px;
+	left: 3px;
+	color: #fff;
+	vertical-align: center;
+}
 #greyout{
     position:fixed;
     top:0;
@@ -42,6 +70,11 @@
     padding: 4px;
     border: 0.1mm solid white;
 }*/
+input {
+  height: 50px;
+  width: 50px;
+    vertical-align: middle;
+}
 </style>
 
 <!--Import jQuery before materialize.js-->
@@ -203,7 +236,8 @@ lights.forEach(function(value, i){
     chk.type="checkbox";
     chk.if = "cb"+i;
     chk.checked = value.main_group
-    chk.onclick=refreshWS
+    chk.onclick = refreshWS
+    chk.className = "regular-checkbox";
         
     var para = document.createElement("P");
     para.appendChild(chk); 
