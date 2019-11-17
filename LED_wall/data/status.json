@@ -1,0 +1,27 @@
+{
+
+  "manualBrightness": -1,
+
+  "brightness": 1,
+
+  "wallMode": 0,
+
+  "effectCounter": 4875,
+
+  "sunrise": false,
+
+  "sunriseDuration": 10,
+
+  "sunriseBrightness": 200,
+
+  "sunriseMinuteOfDay": 0,
+
+  "tickerString": "null",
+
+  "sensorEnabled": true,
+
+  "sensorDuration": 20,
+
+  "sensorBrightness": 100
+
+}

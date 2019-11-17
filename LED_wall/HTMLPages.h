@@ -59,6 +59,7 @@ void handleFileUpload() { // upload a new file to the SPIFFS
       webserver.send(500, "text/plain", "500: couldn't create file");
     }
   }
+  readStatus();
 }
 void handleNotFound() { // if the requested file or page doesn't exist, return a 404 not found error
   if (!handleFileRead(webserver.uri())) {        // check if the file exists in the flash memory (SPIFFS), if so, send it
@@ -74,11 +75,11 @@ String createSunrisePage() {
   static const String page = "<head><title>LED Wall</title><style>html{ font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}"
                              ".button{ background-color: #195B6A; border: none; color: white; padding: 4px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;width: 400px}"
                              ".button2 {background-color: #0000AA;}</style></head>"
-                             "<h3>LED Wall - Sunrise Settings</h3>"
-                             "<form action=\"sunrise\" method=\"POST\">\n"
+                             "<h3>LED Wall - Settings</h3>"
+                             "<form action=\"settings\" method=\"POST\">\n"
                              "<p>Alarm Time: <input id=\"time\" type=\"time\" name=\"time\" value=\"";
-  String hourString = String(sunriseMinuteOfDay / 60);
-  String minuteString = String(sunriseMinuteOfDay % 60);
+  String hourString = String((int)sunriseMinuteOfDay / 60);
+  String minuteString = String((int)sunriseMinuteOfDay % 60);
   if (hourString.length() == 1) hourString = "0" + hourString;
   if (minuteString.length() == 1) minuteString = "0" + minuteString;
   String vp = "";
@@ -86,14 +87,23 @@ String createSunrisePage() {
   vp += String(":");
   vp += minuteString;
   vp += String( "\"></p>\n");
-  vp += "<p>Sunrise Duration: <input type=\"number\" id=\"duration\" name=\"duration\" min=\"1\" max=\"30\" value=\"";
+  vp += "<p>Sunrise Duration: <input type=\"number\" id=\"sunriseduration\" name=\"sunriseduration\" min=\"1\" max=\"30\" value=\"";
   vp += sunriseDuration;
   vp += "\"></p>";
-  vp += "<p>Sunrise Brightness: <input type=\"number\" id=\"brightness\" name=\"brightness\" min=\"1\" max=\"255\" value=\"";
+  vp += "<p>Sunrise Brightness: <input type=\"number\" id=\"sunrisebrightness\" name=\"sunrisebrightness\" min=\"1\" max=\"255\" value=\"";
   vp += sunriseBrightness;
   vp += "\"></p>";
-  vp += "<p>Enable Sunrise: <input type=\"checkbox\" id=\"enableSunrise\" name=\"enableSunrise\" value=\"enableSunrise\"";
+  vp += "<p>Enable Sunrise: <input type=\"checkbox\" id=\"enablesunrise\" name=\"enablesunrise\" value=\"enablesunrise\"";
   if (sunrise) vp += "checked";
+  vp += "></p>";
+  vp += "<p>Sensor Brightness: <input type=\"number\" id=\"sensorbrightness\" name=\"sensorbrightness\" min=\"1\" max=\"255\" value=\"";
+  vp += sensorBrightness;
+  vp += "\"></p>";
+  vp += "<p>Sensor Duration: <input type=\"number\" id=\"sensorduration\" name=\"sensorduration\" min=\"1\" max=\"600\" value=\"";
+  vp += sensorDuration;
+  vp += "\"></p>";
+  vp += "<p>Enable Sensor: <input type=\"checkbox\" id=\"enablesensor\" name=\"enablesensor\" value=\"enablesensor\"";
+  if (sensorEnabled) vp += " checked";
   vp += "></p>"
         "<input name=\"Save\" class=\"button\" type=\"submit\" value=\"Save Settings\">"
         "</form>"

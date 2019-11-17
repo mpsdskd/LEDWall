@@ -14,56 +14,17 @@ extern "C" {
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
-//===== ↓↓↓ SETTINGS ↓↓↓ =====
-
-char boardname[] = "ledwall";
-
-#define SENSORPIN D5 //USE SOMETHING OTHER THAND D0, 2, 8 - stop ESP from booting
-#define BOARDLED 16
-#define sensor false
-
-int LEDRefreshInterval = 50;
 os_timer_t refreshTimer;
 //os_timer_t ntpTimer;
-time_t lastTime;
+#include "config_kitchen.h"
+#include "status.h"
 #include "TimeThings.h"
-//Timers
 
-//LED
-// Params for width and height
-const uint8_t kMatrixWidth = 20;
-const uint8_t kMatrixHeight = 10;
-
-#define drawColon false
-#define secondsBar false
-
-#define NUM_LEDS kMatrixWidth*kMatrixHeight
-#define FASTLED_ALLOW_INTERRUPTS 0
 #include <FastLED.h>
-#define LED_PIN         D1
-#define COLOR_ORDER     GRB
-#define CHIPSET         WS2812B
 CRGB leds_plus_safety_pixel[ NUM_LEDS + 1];
 CRGB* const leds( leds_plus_safety_pixel + 1);
-// Param for different pixel layouts
-const bool    kMatrixSerpentineLayout = true;
 
-int volts = 12;
-int milliamps = 10000;
-
-//===== ↑↑↑ SETTINGS ↑↑↑ =====
-
-int brightness = 1;
-int manualBrightness = -1;
-int wallMode = 0;
-long effectCounter = 0;
-
-bool sunrise = false;
-int sunriseDuration = 10;
-int sunriseBrightness = 255;
-int sunriseMinuteOfDay = 1000;
 File fsUploadFile;
-String tickerString = "";
 
 #include "LEDMatrixThings.h" // bright, drawLetter, darwTime, drawDate 
 #include "LEDMatrixEffects.h"
@@ -75,9 +36,12 @@ WebSocketsServer webSocket(81);
 #include "websocket.h"
 
 void refreshLEDs (void *pArg) {
-  //Serial.println("Start update");
-  effectCounter += 1;
-  FastLED.setBrightness(manualBrightness);
+//  Serial.println("Start update");
+//  Serial.println(currentBrightness);
+  effectCounter = effectCounter + 1;
+  if (manualBrightness >= 0 && manualBrightness <= 255) {
+    FastLED.setBrightness((uint8_t)manualBrightness);
+  }
   digitalWrite(LED_BUILTIN, LOW);
   switch (wallMode) {
     case 1:
@@ -114,33 +78,48 @@ void refreshLEDs (void *pArg) {
     case 0: //(Sunrise-) Clock
     default:
       local = CE.toLocal(now(), &tcr);
-      if (sunrise && (hour(local) * 60 + minute(local) < sunriseMinuteOfDay) && (hour(local) * 60 + minute(local) > sunriseMinuteOfDay - sunriseDuration)) { //DOES NOT WORK AROUND 0:00 -> I DON'T CARE
+      if ((bool)sunrise && (hour(local) * 60 + minute(local) < (int)sunriseMinuteOfDay) && (hour(local) * 60 + minute(local) > (int)sunriseMinuteOfDay - (int)sunriseDuration)) { //DOES NOT WORK AROUND 0:00 -> I DON'T CARE
         digitalWrite(BOARDLED, LOW);
         Serial.println("Sunrise");
         FastLED.setBrightness(sunriseBrightness);
         for (int i = 0; i < NUM_LEDS; i++) {
-          leds[i] = HeatColor(map(hour(local) * 3600 + minute(local) * 60 + second(local) - (sunriseMinuteOfDay - sunriseDuration) * 60, 0, 60 * sunriseDuration, 0, 255));
+          leds[i] = HeatColor(map(hour(local) * 3600 + minute(local) * 60 + second(local) - ((int)sunriseMinuteOfDay - (int)sunriseDuration) * 60, 0, 60 * (int)sunriseDuration, 0, 255));
         }
-        long a = sq(hour(local) * 3600 + minute(local) * 60 + second(local) - (sunriseMinuteOfDay - sunriseDuration) * 60);
-        drawTime(local, 0, 0, CHSV(150, 150, map(a, 0, 3600 * sq(sunriseDuration), 10, 255)), drawColon, secondsBar);
+        long a = sq(hour(local) * 3600 + minute(local) * 60 + second(local) - ((int)sunriseMinuteOfDay - (int)sunriseDuration) * 60);
+        if (showClock) drawTime(local, 0, 0, CHSV(150, 150, map(a, 0, 3600 * sq((int)sunriseDuration), 10, 255)), drawColon, secondsBar);
+      }
+      else if (sensorEnabled && ((now() - sensorTime) < sensorDuration) && (manualBrightness < 0 || manualBrightness > 255)) {
+        fadeBright(sensorBrightness);
+        REGENBOGEN(effectCounter);
       }
       else {
-        fadeToBlackBy( leds, NUM_LEDS, 16);
         if (manualBrightness < 0 || manualBrightness > 255) {
-          setBright(local);
+          fadeAutoBright(hour(local));
         }
-        drawTime(local, 0, 0, CHSV((60 * minute(now()) + second(now())) * 256 / 3600, 255, 255), drawColon, secondsBar);
+        fadeToBlackBy( leds, NUM_LEDS, 16);
+        if (showClock) {drawTime(local, 0, 0, CHSV((60 * minute(now()) + second(now())) * 256 / 3600, 255, 255), drawColon, secondsBar);}
+        fadeAutoBright(hour(local));
       }
   }
   digitalWrite(LED_BUILTIN, HIGH);
   FastLED.show();
-  os_timer_arm(&refreshTimer, LEDRefreshInterval, false);
+  os_timer_arm(&refreshTimer, (int)LEDRefreshInterval, false);
   //Serial.println("update finished");
 }
 
+ICACHE_RAM_ATTR void interruptRoutine() {
+  Serial.print("Sensor ");
+  Serial.println(digitalRead(SENSORPIN));
+  sensorTime = (long)now();
+}
 void setup() {
   Serial.begin(1000000);
   Serial.println("Start!");
+  readStatus();
+  if (sensor == true) {
+    attachInterrupt(digitalPinToInterrupt(SENSORPIN), interruptRoutine, CHANGE);
+  }
+
   delay(500);
   if (true) { //LEDs  //LEDs  //LEDs  //LEDs
     FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);
@@ -159,6 +138,7 @@ void setup() {
     WiFiManager wifiManager;
     WiFi.hostname(boardname);
     wifiManager.setConnectTimeout(10);
+    wifiManager.setTimeout(180);
 
     //reset settings - for testing
     //wifiManager.resetSettings();
@@ -169,9 +149,7 @@ void setup() {
     //and goes into a blocking loop awaiting configuration
     if (!wifiManager.autoConnect()) {
       Serial.println("failed to connect, resetting to retry");
-      delay(3000);
-      ESP.reset();
-      delay(5000);
+      ESP.restart();
     }
 
     //if you get here you have connected to the WiFi
@@ -211,28 +189,8 @@ void setup() {
 #include "ArduinoOTASetup.h";
 
   drawstring("Web", CRGB(50, 50, 50));
-  if (SPIFFS.exists("/sunrise.json")) {
-    File sunriseFile = SPIFFS.open("/sunrise.json", "r");
-    if (!sunriseFile) {
-      Serial.println("Failed to open config file");
-    }
-    else {
-      DynamicJsonBuffer jsonBuffer;
-      JsonObject& root = jsonBuffer.parseObject(sunriseFile);
-      if (root.success()) {
-        Serial.println("Reading config");
-        sunrise = root["sunrise"];
-        sunriseDuration = root["duration"];
-        sunriseBrightness = root["sunriseBrightness"];
-        sunriseMinuteOfDay = root["sunriseMinuteOfDay"];
-      }
-      else {
-        Serial.println("Failed to read config file");
-      }
-      jsonBuffer.clear();
-    }
-  }
-  else Serial.println("sunrise.json does not exist");
+
+  readStatus();
 
   Serial.println("LightClock");
   Serial.println(sunrise);
@@ -245,57 +203,37 @@ void setup() {
   if (true) { //WEBSERVER//WEBSERVER//WEBSERVER//WEBSERVER//WEBSERVER//WEBSERVER//WEBSERVER//WEBSERVER//WEBSERVER
     webserver.begin();
 
-    webserver.on("/sunrise", HTTP_POST, []() {
-      if (webserver.hasArg("time") && webserver.hasArg("duration")) {
-        if (webserver.arg("time") != NULL && webserver.arg("duration") != NULL) {
-          Serial.println("I got:");
-          Serial.print("Time: ");
-          Serial.println(webserver.arg("time"));
-          Serial.print("Duration: ");
-          Serial.println(webserver.arg("duration"));
-          Serial.print("Brightness: ");
-          Serial.println(webserver.arg("brightness"));
-          Serial.print("Enabled: ");
-          Serial.println(webserver.hasArg("enableSunrise"));
-          //
-          //
-          if (webserver.hasArg("enableSunrise")) sunrise = true;
-          else sunrise = false;
-          sunriseDuration = webserver.arg("duration").toInt();
-          sunriseBrightness = webserver.arg("brightness").toInt();
-          Serial.println(webserver.arg("time").substring(0, 2));
-          Serial.println(webserver.arg("time").substring(3, 5));
-          sunriseMinuteOfDay = webserver.arg("time").substring(0, 2).toInt() * 60 + webserver.arg("time").substring(3, 5).toInt();
+    webserver.on("/settings", HTTP_POST, []() {
+      Serial.println("I got:");
+      Serial.print("Time: ");
+      Serial.println(webserver.arg("time"));
+      Serial.print("Duration: ");
+      Serial.println(webserver.arg("duration"));
+      Serial.print("Brightness: ");
+      Serial.println(webserver.arg("brightness"));
+      Serial.print("Enabled: ");
+      Serial.println(webserver.hasArg("enablesunrise"));
+      Serial.print("Sensor Brightness: ");
+      Serial.println(webserver.arg("sensorbrightness"));
+      //
+      //
+      if (webserver.hasArg("enablesunrise")) sunrise = true;
+      else sunrise = false;
+      if (webserver.hasArg("enablesensor")) sensorEnabled = true;
+      else sensorEnabled = false;
+      sunriseDuration = webserver.arg("sunriseduration").toInt();
+      sunriseBrightness = webserver.arg("sunrisebrightness").toInt();
+      sensorBrightness = webserver.arg("sensorbrightness").toInt();
+      sensorDuration = webserver.arg("sensorduration").toInt();
+      Serial.println(webserver.arg("time").substring(0, 2));
+      Serial.println(webserver.arg("time").substring(3, 5));
+      sunriseMinuteOfDay = webserver.arg("time").substring(0, 2).toInt() * 60 + webserver.arg("time").substring(3, 5).toInt();
 
-          DynamicJsonBuffer jsonBuffer;
-          JsonObject& json = jsonBuffer.createObject();
-          json["sunrise"] = sunrise;
-          json["duration"] = sunriseDuration;
-          json["sunriseMinuteOfDay"] = sunriseMinuteOfDay;
-          json["sunriseBrightness"] = sunriseBrightness;
+      writeStatus();
+      String output = statusString();
+      Serial.println(output);
 
-          File configFile = SPIFFS.open("/sunrise.json", "w");
-          if (!configFile) {
-            Serial.println("Failed to open config file for writing");
-            return false;
-          }
-          json.printTo(configFile);
-          jsonBuffer.clear();
-          configFile.close();
-
-          Serial.println("LightAlarm: ");
-          Serial.println(sunrise);
-          Serial.println("Duration: ");
-          Serial.println(sunriseDuration);
-          Serial.println("Brightness: ");
-          Serial.println(sunriseBrightness);
-          Serial.println("Time (minutes of day): ");
-          Serial.println(sunriseMinuteOfDay);
-          sendRoot();
-        }
-        else webserver.send(400, "text/plain", "400: Invalid Request");
-      }
-      else webserver.send(400, "text/plain", "400: Invalid Request");
+      sendRoot();
     });
 
     webserver.on("/upload", HTTP_GET, []() {                 // if the client requests the upload page
@@ -316,7 +254,7 @@ void setup() {
     webserver.on("", HTTP_GET, []() {
       sendRoot();
     });
-    webserver.on("/sunrise", HTTP_GET, []() {
+    webserver.on("/settings", HTTP_GET, []() {
       sendSunrisePage();
       Serial.println("Sending Sunrise Page (GET)");
     });
@@ -330,6 +268,7 @@ void setup() {
       LEDRefreshInterval = 50;
       wallMode = 0;
       manualBrightness = -1;
+      writeStatus();
       Serial.println("(Sunrise) Clock");
     });
     webserver.on("/1", HTTP_GET, []() {
@@ -337,6 +276,7 @@ void setup() {
       LEDRefreshInterval = 20;
       wallMode = 1;
       manualBrightness = 255;
+      writeStatus();
       Serial.println("Particle Trail");
     });
     webserver.on("/2", HTTP_GET, []() {
@@ -344,6 +284,7 @@ void setup() {
       LEDRefreshInterval = 20;
       wallMode = 2;
       manualBrightness = 255;
+      writeStatus();
       Serial.println("MathRainbow");
     });
     webserver.on("/3", HTTP_GET, []() {
@@ -351,6 +292,7 @@ void setup() {
       LEDRefreshInterval = 500;
       wallMode = 3;
       manualBrightness = 255;
+      writeStatus();
       Serial.println("Gradient");
     });
     webserver.on("/4", HTTP_GET, []() {
@@ -358,6 +300,7 @@ void setup() {
       LEDRefreshInterval = 50;
       wallMode = 4;
       manualBrightness = 255;
+      writeStatus();
       Serial.println("Speckles");
     });
     webserver.on("/5", HTTP_GET, []() {
@@ -365,6 +308,7 @@ void setup() {
       LEDRefreshInterval = 80;
       wallMode = 5;
       manualBrightness = 255;
+      writeStatus();
       Serial.println("Fire");
     });
     //    webserver.on("/6", HTTP_GET, []() {
@@ -379,6 +323,7 @@ void setup() {
       LEDRefreshInterval = 50;
       wallMode = 7;
       manualBrightness = 255;
+      writeStatus();
       Serial.println("Gradient 2D");
     });
     webserver.on("/8", HTTP_GET, []() {
@@ -386,6 +331,7 @@ void setup() {
       LEDRefreshInterval = 50;
       wallMode = 8;
       manualBrightness = 255;
+      writeStatus();
       Serial.println("Firework");
     });
     webserver.on("/9", HTTP_GET, []() {
@@ -398,11 +344,12 @@ void setup() {
       LEDRefreshInterval = 150;
       wallMode = 9;
       manualBrightness = 255;
+      writeStatus();
       tickerString = webserver.arg("ticker");
       sendRoot();
       //webserver.send(200, "text/html", "Displaying \"" + tickerString + "\"</h1><p></p><a href=\"/\">Home</a>");
     });
-        webserver.on("/cc", HTTP_GET, []() {
+    webserver.on("/cc", HTTP_GET, []() {
       FastLED.clear();
       if (webserver.hasArg("pixels")) {
         String val = webserver.arg("pixels");
@@ -418,11 +365,20 @@ void setup() {
       }
       webserver.send(200, "text/html", matrixInput());
     });
+    webserver.on("/status", HTTP_GET, []() {
+      String output = statusString();
+      webserver.send(200, "application/json", output);
+    });
+    webserver.on("/restart", HTTP_GET, []() {
+      webserver.send(200, "text/html", "RESTART");
+      ESP.restart();
+    });
   }
   //Software interrupt - in ms and not necessarily accurate timing
   os_timer_setfn(&refreshTimer, refreshLEDs, NULL);
   os_timer_arm(&refreshTimer, 5000, false);
 
+  if (LEDRefreshInterval < (int)50) LEDRefreshInterval = (int)50;
   drawstring(" :)", CRGB(50, 50, 50));
   Serial.println("Finished Setup");
 }
@@ -431,6 +387,7 @@ void loop() {
   webSocket.loop();
   ArduinoOTA.handle();
   delay(20);
+  ESP.wdtFeed();
   if (now() - lastTime > 300) {
     Serial.println("Getting new time");
     Serial.println(gettime()); //gettime does not seem to work with a timer, as it takes too long and the watchdog bites

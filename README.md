@@ -69,7 +69,7 @@ Color Picker:
 - Provided Font library in the Arduino library folder
 - WiFiManager 
   - https://github.com/tzapu/WiFiManager
-- ArduinoJson 5.X 
+- ArduinoJson 6.X 
   - https://github.com/bblanchon/ArduinoJson)
 - WebSocketsServer 
   - https://github.com/Links2004/arduinoWebSockets
@@ -96,9 +96,6 @@ Color Picker:
 - Alarm Clock with Weekday settings
   - Possibly more than one alarm
 - Via Browser settable AutoBrightness
-- Update ArduinoJSON
-- AutoBrightness via Ping (Brightness increased, if computer is on or smartphone connected to home network)
-- Implementation of PIR-Sensor
 
 - Let Firework escape from the WDT
 

@@ -1,68 +1,14 @@
-uint8_t bright(time_t t) {
-  if (sensor) {
-    if (digitalRead(SENSORPIN)) {
-      Serial.println("Sensor");
-      brightness = manualBrightness;
-      digitalWrite(BOARDLED, LOW);
-    }
-    else {
-      digitalWrite(BOARDLED, HIGH);
-      if (hour(t) > 20 && hour(t) < 23) {
-        brightness = manualBrightness / 8;
-      }
-      else if (hour(t) < 8)
-      {
-        brightness = 1;
-      }
-      else if (hour(t) < 10)
-      {
-        brightness = 4;
-      }
-      else if (hour(t) > 18)
-      {
-        brightness = 10;
-      }
-      else if (hour(t) >= 23)
-      {
-        brightness = 4;
-      }
-      else
-      {
-        brightness = 1;
-      }
-    }
-  }
-  else {
-    digitalWrite(BOARDLED, HIGH);
-    if (hour(t) < 8)       {
-      brightness = 1;
-    }
-    else if (hour(t) < 9)  {
-      brightness = 4;
-    }
-    else if (hour(t) < 10)  {
-      brightness = 4;
-    }
-    else if (hour(t) >= 20) {
-      brightness = 16;
-    }
-    else if (hour(t) >= 22) {
-      brightness = 8;
-    }
-    else if (hour(t) >= 23) {
-      brightness = 4;
-    }
-    else if (hour(t) >= 10 && hour(t) < 18) {
-      brightness = 4;
-    }
-    else {
-      brightness = 1;
-    }
-  }
-  return brightness;
+void setBright(int inputhour) {
+  FastLED.setBrightness(autobrightness[inputhour]);
 }
-void setBright(time_t t) {
-  FastLED.setBrightness(bright(t));
+void fadeBright(uint8_t brightness) {
+  if (FastLED.getBrightness()>brightness) {FastLED.setBrightness(FastLED.getBrightness()-1);}
+  if (FastLED.getBrightness()<brightness) {FastLED.setBrightness(FastLED.getBrightness()+1);}
+//  Serial.print("Current Brightness = "); Serial.println(currentBrightness);
+}
+void fadeAutoBright(int inputhour) {
+  fadeBright(autobrightness[inputhour]);
+//  Serial.print("Autobrightness = "); Serial.println(autobrightness[inputhour]);
 }
 uint16_t XY( uint8_t x, uint8_t y) {
   uint16_t i;
