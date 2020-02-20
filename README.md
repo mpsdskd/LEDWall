@@ -88,6 +88,7 @@ Color Picker:
   - Using http://jscolor.com/
 - Effects:
   - https://github.com/jasoncoon/SmartMatrix-FastLED-Examples/blob/master/Fire1/Fire1.ino
+  - https://gist.github.com/kriegsman/36a1e277f5b4084258d9af1eae29bac4
   - Some more, that I do not remember right now
 - Webinterface: https://randomnerdtutorials.com/esp8266-web-server/
 - Single pixel drawing webinterface: https://rayshobby.net/wordpress/wifi-color-led-matrix/

@@ -16,7 +16,12 @@ extern "C" {
 
 os_timer_t refreshTimer;
 //os_timer_t ntpTimer;
-#include "config_kitchen.h"
+#include "config_leddesk.h"
+//#include "config_ledwall_30x8.h"
+
+
+
+
 #include "status.h"
 #include "TimeThings.h"
 
@@ -72,6 +77,9 @@ void refreshLEDs (void *pArg) {
     case 9:
       FastLED.clear();
       ticker(tickerString, CHSV(effectCounter / 5, 255, 255), effectCounter);
+      break;
+    case 10:
+      pacifica_loop();
       break;
     case 100:
       break;
@@ -348,6 +356,14 @@ void setup() {
       tickerString = webserver.arg("ticker");
       sendRoot();
       //webserver.send(200, "text/html", "Displaying \"" + tickerString + "\"</h1><p></p><a href=\"/\">Home</a>");
+    });
+    webserver.on("/10", HTTP_GET, []() {
+      sendRoot();
+      LEDRefreshInterval = 30;
+      wallMode = 10;
+      manualBrightness = 255;
+      writeStatus();
+      Serial.println("Firework");
     });
     webserver.on("/cc", HTTP_GET, []() {
       FastLED.clear();

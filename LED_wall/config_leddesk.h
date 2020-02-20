@@ -1,8 +1,8 @@
 #define SENSORPIN D5 //USE SOMETHING OTHER THAND D0, 2, 8 - stop ESP from booting
 #define BOARDLED 16
-#define sensor true
+#define sensor false
 
-char boardname[] = "LivingRoom";
+char boardname[] = "LEDDesk";
 
 #define LED_PIN         D3
 #define COLOR_ORDER     GRB
@@ -24,8 +24,8 @@ const uint8_t kMatrixHeight = 1;
 // Param for different pixel layouts
 const bool    kMatrixSerpentineLayout = true;
 
-int volts = 12;
-int milliamps = 3000;
+int volts = 5;
+int milliamps = 250;
 
 uint8_t autobrightness[24] = { 1, 1, 1, 1,
                                1, 1, 1, 1,

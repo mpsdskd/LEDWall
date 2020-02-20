@@ -1,10 +1,10 @@
-#define SENSORPIN D5 //USE SOMETHING OTHER THAND D0, 2, 8 - stop ESP from booting
-#define BOARDLED 16
+#define SENSORPIN A0 //USE SOMETHING OTHER THAND D0, 2, 8 - stop ESP from booting
+#define BOARDLED D2
 #define sensor false
 
 char boardname[] = "SmallLEDWall";
 
-#define LED_PIN         D2
+#define LED_PIN         D1
 #define COLOR_ORDER     GRB
 #define CHIPSET         WS2812B
 
