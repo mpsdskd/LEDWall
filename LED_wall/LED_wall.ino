@@ -2,7 +2,7 @@ extern "C" {
 #include "user_interface.h"
 }
 #include <FS.h>
-#include <Font5x8_1_v.h>
+#include <Font6x8_meins_nodemcu_v.h>
 #include <ESP8266WiFi.h>
 #include <DNSServer.h>
 #include <ESP8266WebServer.h>
@@ -16,8 +16,8 @@ extern "C" {
 
 os_timer_t refreshTimer;
 //os_timer_t ntpTimer;
-#include "config_leddesk.h"
-//#include "config_ledwall_30x8.h"
+//#include "config_leddesk.h"
+#include "config_ledwall_30x8.h"
 
 
 
@@ -105,7 +105,9 @@ void refreshLEDs (void *pArg) {
           fadeAutoBright(hour(local));
         }
         fadeToBlackBy( leds, NUM_LEDS, 16);
-        if (showClock) {drawTime(local, 0, 0, CHSV((60 * minute(now()) + second(now())) * 256 / 3600, 255, 255), drawColon, secondsBar);}
+        CRGB color = CRGB(255,0,0);
+        if (FastLED.getBrightness() > 1) {CRGB color = CHSV((60 * minute(now()) + second(now())) * 256 / 3600, 255, 255);}
+        if (showClock) {drawTime(local, 0, 0, color, drawColon, secondsBar);}
         fadeAutoBright(hour(local));
       }
   }

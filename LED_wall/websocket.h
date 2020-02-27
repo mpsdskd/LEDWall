@@ -27,9 +27,9 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght
       // # ==> Set brightness
       else if (payload[0] == '%') {
         int b = (int) strtol((const char *) &payload[1], NULL, 10);
-        manualBrightness = ((b >> 0) & 0xFF);
+        manualBrightness = b; // ((b >> 0) & 0xFF);
         Serial.printf("WS: Set brightness to: [%u]\n", manualBrightness);
-        FastLED.setBrightness(manualBrightness);
+//        FastLED.setBrightness(manualBrightness);
         webSocket.sendTXT(num, "OK");
       }
 

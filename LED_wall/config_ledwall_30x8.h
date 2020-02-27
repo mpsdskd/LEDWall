@@ -15,8 +15,8 @@ const uint8_t kMatrixWidth = 30;
 const uint8_t kMatrixHeight = 8;
 
 #define showClock true
-#define drawColon false
-#define secondsBar false
+#define drawColon true
+#define secondsBar true
 
 #define NUM_LEDS kMatrixWidth*kMatrixHeight
 #define FASTLED_ALLOW_INTERRUPTS 0
@@ -33,5 +33,5 @@ uint8_t autobrightness[24] = { 1, 1, 1, 1,
                                1, 1, 4, 4,
                                4, 4, 4, 4,
                                4, 4, 10, 10,
-                               10, 8, 4, 2
+                               10, 8, 3, 1
                              };
