@@ -20,7 +20,7 @@
 
   "sensorEnabled": true,
 
-  "sensorDuration": 20,
+  "sensorDuration": 300,
 
   "sensorBrightness": 100
 

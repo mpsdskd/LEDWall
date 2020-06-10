@@ -17,7 +17,9 @@ extern "C" {
 os_timer_t refreshTimer;
 //os_timer_t ntpTimer;
 //#include "config_leddesk.h"
-#include "config_ledwall_30x8.h"
+//#include "config_kitchen.h"
+#include "config_living_room.h"
+//#include "config_ledwall_30x8.h"
 
 
 
@@ -41,13 +43,21 @@ WebSocketsServer webSocket(81);
 #include "websocket.h"
 
 void refreshLEDs (void *pArg) {
-//  Serial.println("Start update");
-//  Serial.println(currentBrightness);
+  //  Serial.println("Start update");
+  //  Serial.println(currentBrightness);
+  digitalWrite(LED_BUILTIN, LOW);
   effectCounter = effectCounter + 1;
   if (manualBrightness >= 0 && manualBrightness <= 255) {
     FastLED.setBrightness((uint8_t)manualBrightness);
   }
-  digitalWrite(LED_BUILTIN, LOW);
+  else {
+    if (sensorEnabled && ((now() - sensorTime) < sensorDuration) && (manualBrightness < 0 || manualBrightness > 255)) {
+      fadeBright(sensorBrightness);
+    }
+    else {
+      fadeBright(0);
+    }
+  }
   switch (wallMode) {
     case 1:
       parttrail(effectCounter);
@@ -96,20 +106,18 @@ void refreshLEDs (void *pArg) {
         long a = sq(hour(local) * 3600 + minute(local) * 60 + second(local) - ((int)sunriseMinuteOfDay - (int)sunriseDuration) * 60);
         if (showClock) drawTime(local, 0, 0, CHSV(150, 150, map(a, 0, 3600 * sq((int)sunriseDuration), 10, 255)), drawColon, secondsBar);
       }
-      else if (sensorEnabled && ((now() - sensorTime) < sensorDuration) && (manualBrightness < 0 || manualBrightness > 255)) {
-        fadeBright(sensorBrightness);
-        REGENBOGEN(effectCounter);
-      }
-      else {
-        if (manualBrightness < 0 || manualBrightness > 255) {
-          fadeAutoBright(hour(local));
-        }
-        fadeToBlackBy( leds, NUM_LEDS, 16);
-        CRGB color = CRGB(255,0,0);
-        if (FastLED.getBrightness() > 1) {CRGB color = CHSV((60 * minute(now()) + second(now())) * 256 / 3600, 255, 255);}
-        if (showClock) {drawTime(local, 0, 0, color, drawColon, secondsBar);}
+      if (manualBrightness < 0 || manualBrightness > 255) {
         fadeAutoBright(hour(local));
       }
+      fadeToBlackBy( leds, NUM_LEDS, 16);
+      CRGB color = CRGB(255, 0, 0);
+      if (FastLED.getBrightness() > 1) {
+        CRGB color = CHSV((60 * minute(now()) + second(now())) * 256 / 3600, 255, 255);
+      }
+      if (showClock) {
+        drawTime(local, 0, 0, color, drawColon, secondsBar);
+      }
+      fadeAutoBright(hour(local));
   }
   digitalWrite(LED_BUILTIN, HIGH);
   FastLED.show();
@@ -410,5 +418,8 @@ void loop() {
     Serial.println("Getting new time");
     Serial.println(gettime()); //gettime does not seem to work with a timer, as it takes too long and the watchdog bites
     delay(100);
+    Serial.println("getFreeHeap:");
+    Serial.println(ESP.getFreeHeap());
+    writeStatus();
   }
 }

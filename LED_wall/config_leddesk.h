@@ -1,10 +1,10 @@
-#define SENSORPIN D5 //USE SOMETHING OTHER THAND D0, 2, 8 - stop ESP from booting
+#define SENSORPIN D3 //USE SOMETHING OTHER THAND D0, 2, 8 - stop ESP from booting
 #define BOARDLED 16
 #define sensor false
 
 char boardname[] = "LEDDesk";
 
-#define LED_PIN         D3
+#define LED_PIN         1
 #define COLOR_ORDER     GRB
 #define CHIPSET         WS2812B
 
@@ -25,7 +25,7 @@ const uint8_t kMatrixHeight = 1;
 const bool    kMatrixSerpentineLayout = true;
 
 int volts = 5;
-int milliamps = 250;
+int milliamps = 600;
 
 uint8_t autobrightness[24] = { 1, 1, 1, 1,
                                1, 1, 1, 1,

@@ -4,7 +4,7 @@
 
 char boardname[] = "LivingRoom";
 
-#define LED_PIN         D3
+#define LED_PIN         D1
 #define COLOR_ORDER     GRB
 #define CHIPSET         WS2812B
 
