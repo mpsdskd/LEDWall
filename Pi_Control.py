@@ -71,7 +71,7 @@ async def set_brightness(address, brightness, fade=False, start=0, delay=0.1):
                 answer = await websocket.recv()
                 logger.debug("Set brightness "+str(i))
                 logger.debug("Websocket: " + answer)
-            asyncio.sleep(delay)
+            await asyncio.sleep(delay)
         except Exception as e:
             logger.error(e)
             

@@ -5,6 +5,7 @@
         "ping_devices":
             [
                 "mps-laptop.fritz.box",
+                "mps-tower.fritz.box",
                 "192.168.178.21",
                 "192.168.178.65",
                 "192.168.178.10",
@@ -15,7 +16,7 @@
                 {
                     "Comment":"SmallLEDWall",
                     "address":"192.168.178.22",
-                    "brightness":300,
+                    "brightness":-1,
                     "mode":null,
                     "fade":false
                 }
@@ -33,7 +34,7 @@
                 {
                     "Comment":"SmartLight",
                     "address":"192.168.178.28",
-                    "brightness":255,
+                    "brightness":-1,
                     "mode":null,
                     "fade":true
                 }
@@ -44,7 +45,7 @@
             "ping",
         "ping_devices":
             [
-                "mps-laptop.fritz.box"
+                "mps-tower.fritz.box"
             ],
         "activate_devices":
             [
