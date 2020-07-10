@@ -108,7 +108,7 @@ async def periodic():
                         else:
                             logger.info("Deactivating devices")
                             for device in rule["activate_devices"]:
-                                await set_brightness(device["address"], 0, fade=device["fade"], start=10, delay=1)
+                                await set_brightness(device["address"], 0, fade=device["fade"], start=device["brightness"], delay=1)
                     else:
                         logger.info("State did not change")
                     rule["last_state"]  = actual_state
