@@ -85,12 +85,14 @@ boolean gettime() {
   //once wait for wifi to be connected
   if (WiFi.status() != WL_CONNECTED)
   {
+    WiFi.reconnect();
     Serial.println("Wait for WiFi");
     delay(1000);
     connection -= 1;
     Serial.println(connection);
     if (connection <= 0)
     {
+      Serial.println("Cannot connect to WiFi - Restarting");
       ESP.restart();
     }
     return false;

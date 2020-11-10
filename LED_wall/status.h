@@ -23,7 +23,7 @@ int currentBrightness = 0;
 String statusString() {
   DynamicJsonDocument  json(500);
   json["manualBrightness"] = manualBrightness;
-  json["brightness"] = brightness;
+  json["brightness"] = FastLED.getBrightness();
   json["wallMode"] = wallMode;
   json["effectCounter"] = effectCounter;
   json["sunrise"] = sunrise;

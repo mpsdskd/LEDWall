@@ -16,16 +16,12 @@ extern "C" {
 
 os_timer_t refreshTimer;
 //os_timer_t ntpTimer;
-//#include "config_leddesk.h"
-//#include "config_kitchen.h"
-#include "config_living_room.h"
-//#include "config_ledwall_30x8.h"
+//#include "config_leddesk.h" //NodeMCU
+//#include "config_kitchen.h" //Wemos D1 Mini
+//#include "config_living_room.h" //Wemos D1 Mini
+#include "config_ledwall_30x8.h" //NodeMCU
 
 
-
-
-#include "status.h"
-#include "TimeThings.h"
 
 #include <FastLED.h>
 CRGB leds_plus_safety_pixel[ NUM_LEDS + 1];
@@ -33,6 +29,8 @@ CRGB* const leds( leds_plus_safety_pixel + 1);
 
 File fsUploadFile;
 
+#include "status.h"
+#include "TimeThings.h"
 #include "LEDMatrixThings.h" // bright, drawLetter, darwTime, drawDate 
 #include "LEDMatrixEffects.h"
 #include "FireworkEffect.h"
@@ -43,9 +41,9 @@ WebSocketsServer webSocket(81);
 #include "websocket.h"
 
 void refreshLEDs (void *pArg) {
+  digitalWrite(BOARDLED, LOW);
   //  Serial.println("Start update");
   //  Serial.println(currentBrightness);
-  digitalWrite(LED_BUILTIN, LOW);
   effectCounter = effectCounter + 1;
   if (manualBrightness >= 0 && manualBrightness <= 255) {
     FastLED.setBrightness((uint8_t)manualBrightness);
@@ -97,7 +95,7 @@ void refreshLEDs (void *pArg) {
     default:
       local = CE.toLocal(now(), &tcr);
       if ((bool)sunrise && (hour(local) * 60 + minute(local) < (int)sunriseMinuteOfDay) && (hour(local) * 60 + minute(local) > (int)sunriseMinuteOfDay - (int)sunriseDuration)) { //DOES NOT WORK AROUND 0:00 -> I DON'T CARE
-        digitalWrite(BOARDLED, LOW);
+//        digitalWrite(BOARDLED, LOW);
         Serial.println("Sunrise");
         FastLED.setBrightness(sunriseBrightness);
         for (int i = 0; i < NUM_LEDS; i++) {
@@ -119,7 +117,7 @@ void refreshLEDs (void *pArg) {
       }
       fadeAutoBright(hour(local));
   }
-  digitalWrite(LED_BUILTIN, HIGH);
+  digitalWrite(BOARDLED, HIGH);
   FastLED.show();
   os_timer_arm(&refreshTimer, (int)LEDRefreshInterval, false);
   //Serial.println("update finished");
@@ -186,10 +184,10 @@ void setup() {
   drawstring("Pins", CRGB(50, 50, 50));
   if (true) { //PINS  //PINS  //PINS  //PINS
     pinMode(SENSORPIN, INPUT);
-    pinMode(LED_BUILTIN, OUTPUT);
-    digitalWrite(LED_BUILTIN, LOW);
     pinMode(BOARDLED, OUTPUT);
     digitalWrite(BOARDLED, LOW);
+//    pinMode(BOARDLED, OUTPUT);
+//    digitalWrite(BOARDLED, LOW);
     Serial.println("Pins set up");
   }
 
