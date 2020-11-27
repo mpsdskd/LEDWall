@@ -18,10 +18,12 @@ os_timer_t refreshTimer;
 //os_timer_t ntpTimer;
 //#include "config_leddesk.h" //NodeMCU
 //#include "config_kitchen.h" //Wemos D1 Mini
-//#include "config_living_room.h" //Wemos D1 Mini
-#include "config_ledwall_30x8.h" //NodeMCU
+#include "config_living_room.h" //Wemos D1 Mini
+//#include "config_ledwall_30x8.h" //NodeMCU
 
-
+#ifdef ENVIRONMENT_SENSOR
+  #include "sensor.h"
+#endif
 
 #include <FastLED.h>
 CRGB leds_plus_safety_pixel[ NUM_LEDS + 1];
@@ -135,6 +137,16 @@ void setup() {
   if (sensor == true) {
     attachInterrupt(digitalPinToInterrupt(SENSORPIN), interruptRoutine, CHANGE);
   }
+
+  #ifdef BME_280
+    Wire.begin();
+    Wire.setClock(10000);
+    bme.begin(0x76);  
+    Serial.println("BME 280 initialized.");
+    Serial.println(bme.readTemperature());
+    Serial.println(bme.readHumidity());
+    Serial.println(bme.readPressure());
+  #endif
 
   delay(500);
   if (true) { //LEDs  //LEDs  //LEDs  //LEDs
@@ -400,7 +412,7 @@ void setup() {
   }
   //Software interrupt - in ms and not necessarily accurate timing
   os_timer_setfn(&refreshTimer, refreshLEDs, NULL);
-  os_timer_arm(&refreshTimer, 5000, false);
+  os_timer_arm(&refreshTimer, 1000, false);
 
   if (LEDRefreshInterval < (int)50) LEDRefreshInterval = (int)50;
   drawstring(" :)", CRGB(50, 50, 50));

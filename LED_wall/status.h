@@ -9,6 +9,7 @@ int  sunriseDuration;
 int  sunriseBrightness;
 int  sunriseMinuteOfDay;
 String  tickerString;
+String  sensorTag;
 bool  sensorEnabled;
 int  sensorDuration;
 int  sensorBrightness;
@@ -36,6 +37,14 @@ String statusString() {
   json["sensorBrightness"] = sensorBrightness;
   json["LEDRefreshInterval"] = LEDRefreshInterval;
   json["sensorTime"] = sensorTime;
+  json["sensorTag"] = sensorTag;
+  noInterrupts();
+  #ifdef BME_280
+    json["temperature"] = bme.readTemperature();
+    json["humidity"] = bme.readHumidity();
+    json["pressure"] = bme.readPressure();
+  #endif
+  interrupts();
   String output;
   serializeJsonPretty(json, output);
   return output;
@@ -77,4 +86,5 @@ void readStatus() {
   LEDRefreshInterval = json["LEDRefreshInterval"];
   if (LEDRefreshInterval < 100) LEDRefreshInterval = 100;
   sensorTime = json["sensorTime"];
+  sensorTag = json["sensorTag"].as<String>();
 }
