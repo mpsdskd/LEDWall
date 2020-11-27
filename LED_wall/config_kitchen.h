@@ -5,7 +5,7 @@
 char boardname[] = "KitchenLightTOP";
 
 #define LED_PIN         D3
-#define COLOR_ORDER     GRB
+#define COLOR_ORDER     BRG
 #define CHIPSET         WS2812B
 
 
@@ -33,4 +33,9 @@ uint8_t autobrightness[24] = { 1, 1, 1, 1,
                                1, 1, 1, 1,
                                1, 1, 1, 1,
                                1, 1, 1, 1
-                             };
+                             }; 
+                                                         
+#define ENVIRONMENT_SENSOR
+#ifdef ENVIRONMENT_SENSOR
+  #define BME_280
+#endif

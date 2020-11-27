@@ -1,5 +1,5 @@
 #define SENSORPIN D3 //USE SOMETHING OTHER THAND D0, 2, 8 - stop ESP from booting
-#define BOARDLED D2
+#define BOARDLED D6
 #define sensor false
 
 char boardname[] = "LEDDesk";

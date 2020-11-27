@@ -22,6 +22,8 @@
 
   "sensorDuration": 300,
 
-  "sensorBrightness": 100
+  "sensorBrightness": 100,
+  
+  "sensorTag": "Kitchen"
 
 }

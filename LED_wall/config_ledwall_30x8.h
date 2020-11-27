@@ -1,5 +1,5 @@
 #define SENSORPIN A0 //USE SOMETHING OTHER THAND D0, 2, 8 - stop ESP from booting
-#define BOARDLED D2
+#define BOARDLED D3
 #define sensor false
 
 char boardname[] = "SmallLEDWall";
@@ -35,3 +35,8 @@ uint8_t autobrightness[24] = { 1, 1, 1, 1,
                                4, 4, 10, 10,
                                10, 8, 3, 1
                              };
+
+#define ENVIRONMENT_SENSOR
+#ifdef ENVIRONMENT_SENSOR
+  #define BME_280
+#endif
